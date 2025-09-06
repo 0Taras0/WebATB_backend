@@ -4,11 +4,11 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace WebATBApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/[controller]/[action]")]
     [ApiController]
     public class CategoriesController(ICategoriesService categoriesService) : Controller
     {
-        [HttpGet("list")]
+        [HttpGet]
         public async Task<IActionResult> List()
         {
             var model = await categoriesService.GetAllAsync();
@@ -16,7 +16,7 @@ namespace WebATBApi.Controllers
             return Ok(model);
         }
 
-        [HttpPost("create")]
+        [HttpPost]
         //[Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Create([FromForm] CategoryCreateModel model)
         {
@@ -25,7 +25,7 @@ namespace WebATBApi.Controllers
             return Ok(result);
         }
 
-        [HttpPut("update")]
+        [HttpPut]
         //[Authorize(Roles = Roles.Admin)]
         public async Task<IActionResult> Update([FromForm] CategoryEditModel model)
         {
@@ -42,12 +42,24 @@ namespace WebATBApi.Controllers
             return Ok(result);
         }
 
-        [HttpDelete("delete")]
-        //[Authorize(Roles = Roles.Admin)]
-        public async Task<IActionResult> Delete([FromBody] CategoryDeleteModel model)
+        [HttpGet("{id:long}")]
+        public async Task<IActionResult> GetById(long id)
         {
-            await categoriesService.DeleteAsync(model);
-            return Ok($"Category with id: {model.Id} deleted");
+            var result = await categoriesService.GetByIdAsync(id);
+
+            return Ok(result);
+        }
+
+        [HttpDelete("{id:long}")]
+        //[Authorize(Roles = Roles.Admin)]
+        public async Task<IActionResult> Delete(long id)
+        {
+            var category = await categoriesService.DeleteAsync(id);
+
+            if (category == null)
+                return NotFound(new { message = $"Категорію з Id {id} не знайдено" });
+
+            return Ok(new { message = "Категорію видалено успішно", category });
         }
     }
 }

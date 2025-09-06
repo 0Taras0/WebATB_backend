@@ -21,7 +21,7 @@ public class CategoryUpdateValidator : AbstractValidator<CategoryEditModel>
             .Must(name => !string.IsNullOrWhiteSpace(name)).WithMessage("Назва не може бути порожньою або null")
             .MustAsync(async (model, name, cancellation) =>
                 !await db.Categories
-                    .AnyAsync(c => c.Name.ToLower().Trim() == name.ToLower().Trim() && c.Id != model.Id, cancellation))
+                    .AnyAsync(c => c.Name.ToLower().Trim() == name.ToLower().Trim() && c.Id != model.Id && !c.IsDeleted, cancellation))
             .WithMessage("Інша категорія з таким іменем вже існує");
 
         RuleFor(x => x.Slug)
@@ -31,7 +31,7 @@ public class CategoryUpdateValidator : AbstractValidator<CategoryEditModel>
             {
                 var normalized = slug.Trim().ToLower().Replace(" ", "-");
                 return !await db.Categories
-                    .AnyAsync(c => c.Slug == normalized && c.Id != model.Id, cancellation);
+                    .AnyAsync(c => c.Slug == normalized && c.Id != model.Id && !c.IsDeleted, cancellation);
             })
             .WithMessage("Інша категорія з таким слагом вже існує");
     }

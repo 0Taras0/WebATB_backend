@@ -88,7 +88,7 @@ public class ImageService(IConfiguration configuration) : IImageService
                 Size = new Size(size, size),
                 Mode = ResizeMode.Max
             });
-            await image.SaveAsync(path, new WebpEncoder());
         });
+        await image.SaveAsync(path, new WebpEncoder());
     }
 }

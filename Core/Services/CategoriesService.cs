@@ -45,7 +45,7 @@ public class CategoriesService(
         return mapped;
     }
 
-    public async Task<CategoryItemModel> GetByIdAsync(int id)
+    public async Task<CategoryItemModel> GetByIdAsync(long id)
     {
         var model = await context.Categories
             .AsNoTracking()
@@ -76,13 +76,18 @@ public class CategoriesService(
             .ToListAsync();
     }
 
-    public async Task DeleteAsync(CategoryDeleteModel model)
+    public async Task<CategoryItemModel?> DeleteAsync(long id)
     {
-        var entity = await context.Categories.FirstOrDefaultAsync(x => x.Id == model.Id);
+        var entity = await context.Categories.FirstOrDefaultAsync(x => x.Id == id);
+
+        if (entity == null)
+            return null;
 
         entity.IsDeleted = true;
-
         await context.SaveChangesAsync();
 
+        var mapped = mapper.Map<CategoryItemModel>(entity);
+
+        return mapped;
     }
 }
