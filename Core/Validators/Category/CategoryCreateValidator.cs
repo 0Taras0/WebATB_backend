@@ -10,6 +10,7 @@ public class CategoryCreateValidator : AbstractValidator<CategoryCreateModel>
     public CategoryCreateValidator(AppDbAtbContext db)
     {
         RuleFor(x => x.Name)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Назва є обов'язковою")
             .MaximumLength(250).WithMessage("Назва повинна містити не більше 250 символів")
             .Must(name => !string.IsNullOrWhiteSpace(name))
@@ -20,6 +21,7 @@ public class CategoryCreateValidator : AbstractValidator<CategoryCreateModel>
                 .WithMessage("Категорія з такою назвою вже існує");
 
         RuleFor(x => x.Slug)
+            .Cascade(CascadeMode.Stop)
             .NotEmpty().WithMessage("Слаг є обов'язковим")
             .MaximumLength(250).WithMessage("Слаг повинен містити не більше 250 символів")
             .MustAsync(async (slug, cancellation) =>
