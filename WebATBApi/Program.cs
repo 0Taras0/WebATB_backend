@@ -1,11 +1,16 @@
 using AtbWebApi.Filters;
+using Core.Extensions;
 using Core.Interfaces;
 using Core.Services;
 using Domain;
 using FluentValidation;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.FileProviders;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using WebATBApi;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -25,10 +30,37 @@ builder.Services.AddDbContext<AppDbAtbContext>(opt =>
     opt.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
 });
 
+builder.Services.AddIdentityConfiguration();
+
+
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.RequireHttpsMetadata = false;
+    options.SaveToken = true;
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = false,
+        ValidateAudience = false,
+        ValidateIssuerSigningKey = true,
+        ValidateLifetime = true,
+        ClockSkew = TimeSpan.Zero,
+        IssuerSigningKey = new SymmetricSecurityKey(
+            Encoding.UTF8.GetBytes(builder.Configuration["Jwt:Key"]))
+    };
+});
+builder.Services.AddHttpClient();
+
 // Add services to the container.
 
 builder.Services.AddScoped<IImageService, ImageService>();
 builder.Services.AddScoped<ICategoriesService, CategoriesService>();
+builder.Services.AddScoped<IAccountService, AccountService>();
+builder.Services.AddScoped<IJwtTokenService, JwtTokenService>();
 
 builder.Services.AddControllers();
 
@@ -72,8 +104,6 @@ app.UseStaticFiles(new StaticFileOptions
     RequestPath = $"/{dir}"
 });
 
-using var scope = app.Services.CreateScope();
-var context = scope.ServiceProvider.GetRequiredService<AppDbAtbContext>();
-context.Database.Migrate();
+await app.SeedData();
 
 app.Run();

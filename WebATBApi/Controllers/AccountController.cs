@@ -1,45 +1,25 @@
-﻿
-using AutoMapper;
-using Core.Interfaces;
+﻿using Core.Interfaces;
 using Core.Models.Account;
-using Domain.Entities.Identity;
-using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 
 namespace AtbWebApi.Controllers;
 
 [Route("api/[controller]/[action]")]
 [ApiController]
-public class AccountController(IMapper mapper, 
-    UserManager<UserEntity> userManager,
-    IImageService imageService) : ControllerBase
+public class AccountController(IAccountService accountService) : ControllerBase
 {
     [HttpPost]
     public async Task<IActionResult> Register([FromForm] RegisterModel model)
     {
-        var user = mapper.Map<UserEntity>(model);
+        var result = await accountService.RegisterAsync(model);
+        if (result.Success)
+            return Ok(new { Token = result.Token });
 
-        user.Image = await imageService.SaveImageAsync(model.ImageFile!);
-
-        var result = await userManager.CreateAsync(user, model.Password);
-        if (result.Succeeded)
+        return BadRequest(new
         {
-            return Ok(new
-            {
-                status = 200,
-                isValid = true,
-                message = "Registration successful"
-            });
-        }
-        else
-        {
-            return BadRequest(new
-            {
-                status = 400,
-                isValid = false,
-                errors = "Registration failed"
-            });
-        }
-
+            status = 400,
+            isValid = false,
+            errors = result.ErrorMessage
+        });
     }
 }

@@ -18,9 +18,6 @@ public class RegisterValidator : AbstractValidator<RegisterModel>
             .NotEmpty().WithMessage("Password is required")
             .MinimumLength(6).WithMessage("Password should contain at least 6 characters");
 
-        RuleFor(x => x.ImageFile)
-            .NotEmpty().WithMessage("Image file is required");
-
         RuleFor(x => x.FirstName)
             .NotEmpty().WithMessage("First name is required")
             .MaximumLength(50).WithMessage("Name cannot be longer than 50 characters");
